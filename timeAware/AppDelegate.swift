@@ -18,7 +18,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let databaseFile = "database.txt"
 
     let statusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    var currentClock : Int = 0;
+    var internalClock : Int = 0
+    var currentTimer : (String, String)?
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         setupStatusMenu()
@@ -34,8 +35,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
         let startItem = NSMenuItem()
-        startItem.title = "Start"
-        startItem.action = #selector(start(_:))
+        startItem.title = "Just Start"
+        startItem.action = #selector(startClick(_:))
         menu.insertItem(startItem, at: 0)
 
 
@@ -45,29 +46,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.insertItem(addItem, at: 1)
 
 
-        let content = getDatabaseContent()
-        let entries = content.components(separatedBy: "\n")
+        let entries = getDatabaseRows()
 
         var outIndex = 2
         for (index, element) in entries.enumerated() {
-            if element == "" {
-                break
-            }
-            outIndex = outIndex  + index
-            let columns = element.components(separatedBy: ",")
+            outIndex = outIndex + 1
             let menuItem = NSMenuItem()
-            menuItem.title = columns[0]
-            menu.insertItem(menuItem, at: outIndex)
+            menuItem.title = element.0
+            menuItem.action = #selector(handleStart(_:))
+            menu.addItem(menuItem)
         }
 
         let quitItem = NSMenuItem()
         quitItem.title = "Quit"
         quitItem.action = #selector(quit(_:))
-        menu.insertItem(quitItem, at: outIndex + 1)
+        menu.addItem(quitItem)
 
         statusBar.menu = menu
     }
 
+    @objc func handleStart(_ obj: NSMenuItem) -> Void {
+        let title =  obj.title
+
+        let entries = getDatabaseRows()
+
+        let match = entries.filter {  $0.0 == title }
+
+        if (match[0] != nil) {
+            currentTimer = match[0]
+        }
+
+        NSLog(match[0].1)
+        start(obj)
+    }
 
     @objc func handleCreate(_ obj: NSMenuItem) {
          NSLog("handle create");
@@ -75,31 +86,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let entry = "\(createName.stringValue),\(createDuration.stringValue)\n"
         writeEntryToDatabase(entry: entry)
 
-        setupStatusMenu()
         createPanel.close()
+        setupStatusMenu()
     }
-
 
     @objc func showCreateModal(_ obj: NSMenuItem) {
         createPanel.orderFrontRegardless()
     }
 
+    @objc func startClick(_ obj: NSMenuItem) {
+        currentTimer = nil
+        start(obj)
+    }
+
     @objc func start(_ obj: NSMenuItem) {
-        if (currentClock > 0) {
-            currentClock = 0
+        if (internalClock > 0) {
+            internalClock = 0
             return
         }
-
 
         let date = Date().addingTimeInterval(1)
         let timer = Timer(fireAt: date, interval: 1, target: self, selector: #selector(incrementTimer(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer, forMode: RunLoopMode.commonModes)
-
     }
 
     @objc func incrementTimer(_ obj: NSMenuItem) {
-        currentClock = currentClock + 1
-        let (h,m,s) = secondsToHoursMinutesSeconds(seconds: currentClock)
+        internalClock = internalClock + 1
+
+
+
+        var seconds = internalClock
+        if currentTimer != nil {
+            let duration = Int(currentTimer!.1)! * 60
+            seconds = duration - internalClock
+        }
+
+        let (h,m,s) = secondsToHoursMinutesSeconds(seconds: seconds)
         if (h > 0) {
             statusBar.title = "\(String(format: "%02d", h)):\(String(format: "%02d", m)):\(String(format: "%02d", s))"
         } else {
@@ -133,7 +155,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func getDatabaseContent() -> String {
+    func getDatabaseRows() -> [(String, String)] {
         var text = ""
         do {
             if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -144,7 +166,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             print("error:", error)
         }
 
-        return text
+        let list = text.components(separatedBy: "\n")
+
+        var result : [(String, String)] = [];
+        for (index, element) in list.enumerated() {
+            if element == "" {
+                continue
+            }
+            let pair = element.components(separatedBy: ",")
+
+            result.append((pair[0], pair[1]))
+        }
+
+        return result
     }
 
 }
