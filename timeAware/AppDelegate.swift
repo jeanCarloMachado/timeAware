@@ -119,6 +119,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if currentTimer != nil {
             let duration = Int(currentTimer!.1)! * 60
             seconds = duration - internalClock
+
+
+            if seconds == 0  {
+                var notification = NSUserNotification()
+                notification.title = "Time expired"
+                notification.informativeText = "The previst time is over"
+                notification.soundName = NSUserNotificationDefaultSoundName
+                NSUserNotificationCenter.default.deliver(notification)
+            }
         }
 
         let (h,m,s) = secondsToHoursMinutesSeconds(seconds: seconds)
