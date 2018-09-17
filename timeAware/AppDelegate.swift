@@ -10,13 +10,24 @@ import Cocoa
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
+    @IBOutlet weak var createPanel: NSPanel!
+    @IBOutlet weak var createButton: NSButton!
+    @IBOutlet weak var createName: NSTextField!
+    @IBOutlet weak var createDuration: NSTextField!
+
+    let databaseFile = "database.txt"
 
     let statusBar = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var currentClock : Int = 0;
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        statusBar.title = "00:00"
+        setupStatusMenu()
 
+        createButton.action = #selector(handleCreate(_:))
+
+    }
+    func setupStatusMenu() {
+        statusBar.title = "00:00"
 
         let menu = NSMenu()
         menu.autoenablesItems = true
@@ -28,13 +39,49 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.insertItem(startItem, at: 0)
 
 
+        let addItem = NSMenuItem()
+        addItem.title = "Add"
+        addItem.action = #selector(showCreateModal(_:))
+        menu.insertItem(addItem, at: 1)
+
+
+        let content = getDatabaseContent()
+        let entries = content.components(separatedBy: "\n")
+
+        var outIndex = 2
+        for (index, element) in entries.enumerated() {
+            if element == "" {
+                break
+            }
+            outIndex = outIndex  + index
+            let columns = element.components(separatedBy: ",")
+            let menuItem = NSMenuItem()
+            menuItem.title = columns[0]
+            menu.insertItem(menuItem, at: outIndex)
+        }
+
         let quitItem = NSMenuItem()
         quitItem.title = "Quit"
         quitItem.action = #selector(quit(_:))
-        menu.insertItem(quitItem, at: 1)
-
+        menu.insertItem(quitItem, at: outIndex + 1)
 
         statusBar.menu = menu
+    }
+
+
+    @objc func handleCreate(_ obj: NSMenuItem) {
+         NSLog("handle create");
+
+        let entry = "\(createName.stringValue),\(createDuration.stringValue)\n"
+        writeEntryToDatabase(entry: entry)
+
+        setupStatusMenu()
+        createPanel.close()
+    }
+
+
+    @objc func showCreateModal(_ obj: NSMenuItem) {
+        createPanel.orderFrontRegardless()
     }
 
     @objc func start(_ obj: NSMenuItem) {
@@ -68,5 +115,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
       return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
     }
+
+
+    func writeEntryToDatabase(entry: String) {
+        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileURL = dir.appendingPathComponent(databaseFile)
+
+            do {
+                let fileHandle = try FileHandle(forWritingTo: fileURL)
+                fileHandle.seekToEndOfFile()
+                fileHandle.write(entry.data(using: .utf8)!)
+                fileHandle.closeFile()
+
+            } catch {
+                print("Failed writing to URL: \(fileURL), Error: " + error.localizedDescription)
+            }
+        }
+    }
+
+    func getDatabaseContent() -> String {
+        var text = ""
+        do {
+            if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                let fileURL = dir.appendingPathComponent(databaseFile)
+                text = try String(contentsOf: fileURL, encoding: .utf8)
+            }
+        } catch {
+            print("error:", error)
+        }
+
+        return text
+    }
+
 }
 
