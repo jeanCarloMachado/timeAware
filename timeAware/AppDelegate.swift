@@ -37,25 +37,27 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let startItem = NSMenuItem()
         startItem.title = "Just Start"
         startItem.action = #selector(startClick(_:))
-        menu.insertItem(startItem, at: 0)
+        menu.addItem(startItem)
 
 
         let addItem = NSMenuItem()
         addItem.title = "Add"
         addItem.action = #selector(showCreateModal(_:))
-        menu.insertItem(addItem, at: 1)
+        menu.addItem(addItem)
 
+
+        menu.addItem(NSMenuItem.separator())
 
         let entries = getDatabaseRows()
 
-        var outIndex = 2
         for (index, element) in entries.enumerated() {
-            outIndex = outIndex + 1
             let menuItem = NSMenuItem()
             menuItem.title = element.0
-            menuItem.action = #selector(handleStart(_:))
+            menuItem.action = #selector(handleItemClick(_:))
             menu.addItem(menuItem)
         }
+
+        menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem()
         quitItem.title = "Quit"
@@ -65,32 +67,41 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusBar.menu = menu
     }
 
-    @objc func handleStart(_ obj: NSMenuItem) -> Void {
-        let title =  obj.title
+    @objc func handleItemClick(_ obj: NSMenuItem) -> Void {
 
         let entries = getDatabaseRows()
+        let title =  obj.title
+
+        let event = NSApp.currentEvent!
+        if event.type == NSEvent.EventType.rightMouseUp{
+            removeEntryFromDatabase(name: title)
+            setupStatusMenu()
+            return
+        }
+
 
         let match = entries.filter {  $0.0 == title }
-
         if (match[0] != nil) {
             currentTimer = match[0]
         }
 
-        NSLog(match[0].1)
         start(obj)
     }
 
     @objc func handleCreate(_ obj: NSMenuItem) {
          NSLog("handle create");
 
-        let entry = "\(createName.stringValue),\(createDuration.stringValue)\n"
+        let entry = pair2String(title: createName.stringValue,value: createDuration.stringValue)
         writeEntryToDatabase(entry: entry)
 
         createPanel.close()
         setupStatusMenu()
+
     }
 
     @objc func showCreateModal(_ obj: NSMenuItem) {
+        createName.stringValue = ""
+        createDuration.stringValue = ""
         createPanel.orderFrontRegardless()
     }
 
@@ -145,6 +156,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func secondsToHoursMinutesSeconds (seconds : Int) -> (Int, Int, Int) {
       return (seconds / 3600, (seconds % 3600) / 60, (seconds % 3600) % 60)
+    }
+
+    func pair2String(title: String, value: String) -> String {
+        return "\(title),\(value)\n"
+    }
+
+    func removeEntryFromDatabase(name: String) {
+        let content  = getDatabaseRows()
+
+        let matches = content.filter {  $0.0 != name }
+
+        let lines = matches.map { pair2String(title: $0.0, value: $0.1) }
+        let  finalContent = lines.joined(separator: "")
+
+
+        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let fileURL = dir.appendingPathComponent(databaseFile)
+
+            do {
+                try finalContent.write(to: fileURL, atomically: true, encoding: .utf8)
+
+            } catch {
+                print("Failed writing to URL: \(fileURL), Error: " + error.localizedDescription)
+            }
+        }
     }
 
 
