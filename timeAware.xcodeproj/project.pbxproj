@@ -10,6 +10,7 @@
 		2F4152D2214EC5EB00FB4B19 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F4152D1214EC5EB00FB4B19 /* AppDelegate.swift */; };
 		2F4152D4214EC5EC00FB4B19 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F4152D3214EC5EC00FB4B19 /* Assets.xcassets */; };
 		2F4152D7214EC5EC00FB4B19 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2F4152D5214EC5EC00FB4B19 /* MainMenu.xib */; };
+		2FD81D8C2173378A002C6AA3 /* Gateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FD81D8B21733789002C6AA3 /* Gateway.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +20,7 @@
 		2F4152D6214EC5EC00FB4B19 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		2F4152D8214EC5EC00FB4B19 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2F4152D9214EC5EC00FB4B19 /* timeAware.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = timeAware.entitlements; sourceTree = "<group>"; };
+		2FD81D8B21733789002C6AA3 /* Gateway.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Gateway.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +53,7 @@
 		2F4152D0214EC5EB00FB4B19 /* timeAware */ = {
 			isa = PBXGroup;
 			children = (
+				2FD81D8B21733789002C6AA3 /* Gateway.swift */,
 				2F4152D1214EC5EB00FB4B19 /* AppDelegate.swift */,
 				2F4152D3214EC5EC00FB4B19 /* Assets.xcassets */,
 				2F4152D5214EC5EC00FB4B19 /* MainMenu.xib */,
@@ -130,6 +133,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2FD81D8C2173378A002C6AA3 /* Gateway.swift in Sources */,
 				2F4152D2214EC5EB00FB4B19 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -275,7 +279,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "Jean-Machado.timeAware";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -293,7 +297,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "Jean-Machado.timeAware";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
